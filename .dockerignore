@@ -1,0 +1,32 @@
+# Ignore development and build artifacts
+.git
+.github
+.gitignore
+.editorconfig
+.envrc
+node_modules
+coverage
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Ignore testing and development files
+tests
+integration-tests
+tools/phpcs.xml
+phpstan.neon
+phpunit.xml
+nix
+default.nix
+
+# Docker files themselves
+Dockerfile*
+docker-compose*.yml
+DOCKER.md
+dist
+
+# Documentation files (not needed in the plugin)
+README.md
+CONTRIBUTING.md
+CHANGELOG.md

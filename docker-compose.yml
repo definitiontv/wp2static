@@ -1,0 +1,20 @@
+services:
+  wp2static-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      # Optional: mount a volume to persist the built zip file
+      - ./dist:/usr/share/nginx/html/dist
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/wp2static.zip"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

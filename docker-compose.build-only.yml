@@ -1,0 +1,29 @@
+services:
+  wp2static-build-only:
+    build:
+      context: .
+      dockerfile: Dockerfile.build-only
+    volumes:
+      # Mount a local directory to get the built zip file
+      - ./dist:/dist
+    environment:
+      - PHP_MEMORY_LIMIT=512M
+    # This service will build and exit
+    restart: "no"
+    
+  # Optional: Simple web server to serve the built zip
+  wp2static-serve:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html
+    depends_on:
+      - wp2static-build-only
+    restart: unless-stopped
+    # Simple nginx config to serve files
+    command: |
+      sh -c "
+        echo '<html><body><h1>WP2Static Plugin Build</h1><p><a href=\"wp2static.zip\">Download wp2static.zip</a></p></body></html>' > /usr/share/nginx/html/index.html;
+        nginx -g 'daemon off;'
+      "

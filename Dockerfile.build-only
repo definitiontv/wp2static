@@ -1,0 +1,51 @@
+# Build-only Dockerfile for WP2Static WordPress Plugin
+# This version focuses on just building the plugin zip without serving it
+FROM php:8.1-cli
+
+# Install system dependencies including oniguruma for mbstring
+RUN apt-get update && apt-get install -y \
+    git \
+    zip \
+    unzip \
+    curl \
+    libonig-dev \
+    libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions required by the plugin
+RUN docker-php-ext-install \
+    mbstring \
+    simplexml
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Copy composer files first (for better Docker layer caching)
+COPY composer.json composer.lock ./
+
+# Install dependencies
+RUN composer install --no-scripts --no-autoloader
+
+# Copy source code
+COPY . .
+
+# Generate optimized autoloader
+RUN composer dump-autoload --optimize
+
+# Create output directory
+RUN mkdir -p /output
+
+# Modify the build script to output to /output instead of $HOME/Downloads
+RUN sed -i 's|$HOME/Downloads/|/output/|g' tools/build_release.sh
+
+# Build the plugin zip
+RUN /bin/bash tools/build_release.sh wp2static
+
+# Create a simple script to copy the built zip to mounted volume
+RUN echo '#!/bin/bash\ncp /output/wp2static.zip /dist/wp2static.zip 2>/dev/null || echo "Built zip available at /output/wp2static.zip"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+# Default command
+CMD ["/entrypoint.sh"]

@@ -16,3 +16,6 @@ admin/*.js*
 *.pid
 result
 result-*
+
+# Docker build artifacts
+dist/
